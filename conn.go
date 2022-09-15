@@ -8,7 +8,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func NewConn(conn net.Conn, rmx, wmx int) ConnCountLimiter {
+func LimitConn(conn net.Conn, rmx, wmx int) ConnCountLimiter {
 	rlm := rate.NewLimiter(rate.Limit(rmx), rmx)
 	wlm := rate.NewLimiter(rate.Limit(wmx), wmx)
 
