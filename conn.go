@@ -8,7 +8,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func LimitConn(conn net.Conn, rmx, wmx int) ConnCountLimiter {
+func LimitConn(conn net.Conn, rmx, wmx int) ConnLimiter {
 	rlm := rate.NewLimiter(rate.Limit(rmx), rmx)
 	wlm := rate.NewLimiter(rate.Limit(wmx), wmx)
 
@@ -106,7 +106,7 @@ func (c *connect) WriteCount() int64 {
 	return c.wct
 }
 
-func (c *connect) Limit(i int) {
+func (c *connect) SetLimit(i int) {
 	c.SetReadLimit(i)
 	c.SetWriteLimit(i)
 }
