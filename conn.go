@@ -69,6 +69,7 @@ func (c *connect) Write(b []byte) (n int, err error) {
 
 		c.wct += int64(wn)
 		b = b[wn:]
+		n += wn
 	}
 
 	return
