@@ -3,6 +3,7 @@ package limio
 import (
 	"context"
 	"io"
+	"time"
 
 	"golang.org/x/time/rate"
 )
@@ -33,7 +34,11 @@ func (rd *limitReader) Read(p []byte) (int, error) {
 		sz = max
 	}
 
-	_ = rd.lim.WaitN(context.Background(), sz)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	err := rd.lim.WaitN(ctx, sz)
+	if cancel(); err != nil {
+		return 0, err
+	}
 
 	return rd.r.Read(p[:sz])
 }

@@ -33,18 +33,23 @@ type connect struct {
 	wct int64
 }
 
-func (c *connect) Read(b []byte) (int, error) {
+func (c *connect) Read(b []byte) (n int, err error) {
 	sz := len(b)
 	if sz == 0 {
-		return 0, nil
+		return
 	}
 
 	if rmx := c.rmx; sz > rmx {
 		sz = rmx
 	}
 
-	_ = c.rlm.WaitN(context.Background(), sz)
-	n, err := c.conn.Read(b[:sz])
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	err = c.rlm.WaitN(ctx, sz)
+	if cancel(); err != nil {
+		return 0, err
+	}
+
+	n, err = c.conn.Read(b[:sz])
 	c.rct += int64(n)
 
 	return n, err
@@ -60,10 +65,14 @@ func (c *connect) Write(b []byte) (n int, err error) {
 			sz = wmx
 		}
 
-		_ = c.wlm.WaitN(context.Background(), sz)
-		wn, ex := c.conn.Write(b[:sz])
-		if ex != nil {
-			err = ex
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		err = c.wlm.WaitN(ctx, sz)
+		if cancel(); err != nil {
+			return
+		}
+		wn, exx := c.conn.Write(b[:sz])
+		if exx != nil {
+			err = exx
 			break
 		}
 
